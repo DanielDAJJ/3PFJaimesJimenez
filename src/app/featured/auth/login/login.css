@@ -1,0 +1,26 @@
+.container{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15%;
+}
+.container-cardLogin{
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    mat-card-content, form{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        form{
+            padding: 0 15%;
+        }
+    }
+}

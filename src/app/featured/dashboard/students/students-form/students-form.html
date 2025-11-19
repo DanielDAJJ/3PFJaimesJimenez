@@ -1,0 +1,49 @@
+<form [formGroup]="createForm" (ngSubmit)="onSubmit()">
+    @if (isEditing) {
+        <mat-form-field appearance="fill">
+            <mat-label>id</mat-label>
+            <input matInput disable value="{{studentId}}" />
+        </mat-form-field>
+    }
+    <mat-form-field class="w-full">
+        <mat-label>Nombre</mat-label>
+        <input [ngClass]="{
+            'is-invalid': inputInvalid('name'),
+            'is-valid': inputValid('name') && createForm.get('name')?.dirty,
+        }" matInput name="name" formControlName="name"/>
+        <mat-error>{{getError('name')}}</mat-error>
+    </mat-form-field>
+    <mat-form-field class="w-full">
+        <mat-label>Email</mat-label>
+        <input [ngClass]="
+        {
+            'is-invalid': inputInvalid('email'),
+            'is-valid': inputValid('email') && createForm.get('email')?.dirty
+        }
+        " matInput name="email" formControlName="email"/>
+        <mat-error>{{getError('email')}}</mat-error>
+    </mat-form-field>
+    <mat-form-field class="w-full">
+        <mat-label>
+            Cursos
+        </mat-label>
+        <mat-select name="courses" formControlName="courses" multiple>
+            @for (course of coursesList; track course.id) {
+                <mat-option [value]="course.id">{{ course.title }}</mat-option>
+            } @empty {
+                <mat-option disabled>No hay cursos disponibles</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field class="w-full">
+        <mat-label>
+            Estado
+        </mat-label>
+        <mat-select name="status" formControlName="status">
+            <mat-option value="ACTIVE">Activo</mat-option>
+            <mat-option value="INACTIVE">Inactivo</mat-option>
+            <mat-option value="GRADUATED">Graduado</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <button mat-raised-button color="primary">Guardar</button>
+</form>

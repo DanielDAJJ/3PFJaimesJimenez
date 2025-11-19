@@ -1,0 +1,15 @@
+@if (student$ | async; as student) {
+    <div>
+        <h1>Perfil de {{student.name}}</h1>
+        <ul>
+            <li><strong>ID:</strong> {{ student.id }}</li>
+            <li><strong>Email:</strong> {{ student.email }}</li>
+            <li><strong>Cursos:</strong> {{ student.courses }}</li>
+            <li><strong>Estado:</strong> {{ student.status }}</li>
+        </ul>
+    </div>
+}@else{
+    <div>
+        <p>Cargando perfil del estudiante...</p>
+    </div>
+}

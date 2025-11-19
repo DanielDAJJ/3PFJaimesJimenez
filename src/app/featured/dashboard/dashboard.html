@@ -1,0 +1,21 @@
+<mat-drawer-container class="drawer-container" autosize>
+    <mat-drawer #drawer class="sideNav" mode="side">
+        <h4 class="menu-title">Plataforma de aprendizaje</h4>
+        <mat-nav-list class="menu-list">
+            @for (item of listItems; track $index) {
+                <a mat-list-item [routerLink]="item.url" class="menu-list-link">
+                    <mat-icon mat-list-icon>{{item.icon}}</mat-icon>
+                    <span mat-line>{{item.name}}</span>
+                </a>
+            }
+        </mat-nav-list>
+    </mat-drawer>
+    <mat-drawer-content class="content">
+        <mat-toolbar class="content-toolbar">
+            <button mat-icon-button (click)="drawer.toggle()"><mat-icon>menu</mat-icon></button>
+        </mat-toolbar>
+        <div class="content-main-container">
+            <router-outlet></router-outlet>
+        </div>
+    </mat-drawer-content>
+</mat-drawer-container>
