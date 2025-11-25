@@ -12,7 +12,8 @@ export class UserService {
   private currentUser$ = new BehaviorSubject<User | null>(null);
 
   public readonly currentUserLoginOn$: Observable<boolean> = this.currentUser$.asObservable().pipe(
-    map(user => !!user)
+    //map(user => !!user)
+    map(user => user !== null)
   );
 
   public readonly isAdmin$: Observable<boolean> = this.currentUser$.asObservable().pipe(
@@ -64,6 +65,10 @@ export class UserService {
 
   getUsers(): Observable<User[]> {
     return of(this.users);
+  }
+
+  isLoggedIn(): boolean{
+    return this.currentUser$.getValue() !== null;
   }
 
   private generateUniqueId(): number {
