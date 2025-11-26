@@ -4,13 +4,14 @@ import { Students } from './students';
 import { StudentsTable } from './students-table/students-table';
 import { StudentsForm } from './students-form/students-form';
 import { StudentsProfile } from './students-profile/students-profile';
+import { adminGuard } from '../../../core/guards/admin/admin-guard';
 
 const routes: Routes = [
   { path: '', component: Students, children: [
     { path: '', component: StudentsTable},
-    { path: 'create', component: StudentsForm},
-    { path: 'edit/:id', component: StudentsForm},
-    { path: 'profile/:id', component: StudentsProfile}
+    { path: 'profile/:id', component: StudentsProfile},
+    { path: 'create', component: StudentsForm , canActivate: [adminGuard]},
+    { path: 'edit/:id', component: StudentsForm, canActivate: [adminGuard]},
   ]}
 ];
 

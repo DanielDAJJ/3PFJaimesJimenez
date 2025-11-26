@@ -3,12 +3,13 @@ import { RouterModule, Routes } from '@angular/router';
 import { Courses } from './courses';
 import { CoursesTable } from './courses-table/courses-table';
 import { CoursesForm } from './courses-form/courses-form';
+import { adminGuard } from '../../../core/guards/admin/admin-guard';
 
 const routes: Routes = [
   { path: '', component: Courses, children: [
     { path: '', component: CoursesTable},
-    { path: 'create', component: CoursesForm},
-    { path: 'edit/:id', component: CoursesForm}
+    { path: 'edit/:id', component: CoursesForm, canActivate: [adminGuard]},
+    { path: 'create', component: CoursesForm, canActivate: [adminGuard]},
   ]}
 ];
 
