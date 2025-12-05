@@ -22,11 +22,12 @@ export class Login {
       alert('Formulario no válido');
       return;
     }
-    this.userService.login(this.loginForm.value).subscribe(users => {
-      if(users.length === 0 || !users){
-        alert('Credenciales incorrectas');
-      } else {
+    this.userService.login(this.loginForm.value).subscribe({
+      next: (_user) => {
         this.router.navigate(['/dashboard']);
+      },
+      error: (error) => {
+        alert(error.message);
       }
     })
   }

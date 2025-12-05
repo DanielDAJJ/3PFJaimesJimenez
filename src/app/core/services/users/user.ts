@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { userRole, User } from './model/user.model';
 import { userMock } from './data/user.mock';
-import { BehaviorSubject, map, Observable, of } from 'rxjs';
+import { BehaviorSubject, map, Observable, of, throwError } from 'rxjs';
 import { LoginPayload } from './model/auth.model';
 
 @Injectable({
@@ -12,7 +12,6 @@ export class UserService {
   private currentUser$ = new BehaviorSubject<User | null>(null);
 
   public readonly currentUserLoginOn$: Observable<boolean> = this.currentUser$.asObservable().pipe(
-    //map(user => !!user)
     map(user => user !== null)
   );
 
@@ -27,14 +26,14 @@ export class UserService {
     }
   }
 
-  login(payload: LoginPayload): Observable<User[]> {
+  login(payload: LoginPayload): Observable<User> {
     const user = this.users.find(u => u.email === payload.email && u.password === payload.password);
     if (user) {
       this.currentUser$.next(user);
       localStorage.setItem('currentUser', JSON.stringify(user));
-      return of([user]);
+      return of(user);
     }
-    return of([]);
+    return throwError(() => new Error('Email o contraseña incorrectos.'));
   }
 
   createUser(payload: User): Observable<User> {
@@ -43,19 +42,20 @@ export class UserService {
     return of(newUser);
   }
 
-  updateUser(id: number, payload: User): Observable<User | null> {
+  updateUser(id: number, payload: Partial<User>): Observable<User> {
     const index = this.users.findIndex(u => u.id === id);
     if (index !== -1) {
       this.users[index] = { ...this.users[index], ...payload };
       return of(this.users[index]);
     }
-    return of(null);
+    return throwError(() => new Error('Usuario no encontrado.'));
   }
 
   deleteUser(id: number): Observable<boolean> {
-    const initialLength = this.users.length;
+    const userExists = this.users.some(u => u.id === id);
+    if (!userExists) return of(false);
     this.users = this.users.filter(u => u.id !== id);
-    return of(this.users.length < initialLength);
+    return of(true);
   }
 
   logout(): void {
