@@ -27,7 +27,18 @@ export class ApiService {
     return throwError(()=> new Error(errorMessage));
   }
   get<T>(endpoint: string): Observable<T> {
-    return this.http.get<T>(`$`)
+    return this.http.get<T>(`${this.APIUrl}/${endpoint}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+  post<T>(endpoint: string, data: any): Observable<T> {
+    return this.http.post<T>(`${this.APIUrl}/${endpoint}`, data).pipe(catchError(this.handleError));
+  }
+  put<T>(endpoint: string, data: any): Observable<T> {
+    return this.http.put<T>(`${this.APIUrl}/${endpoint}`, data).pipe(catchError(this.handleError));
+  }
+  delete<T>(endpoint: string): Observable<T>{
+    return this.http.delete<T>(`${this.APIUrl}/${endpoint}`).pipe(catchError(this.handleError));
   }
 }
 
