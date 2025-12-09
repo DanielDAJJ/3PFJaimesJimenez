@@ -1,15 +1,15 @@
 import { Injectable } from '@angular/core';
 import { userRole, User } from './model/user.model';
-import { userMock } from './data/user.mock';
-import { BehaviorSubject, map, Observable, of, throwError } from 'rxjs';
+import { BehaviorSubject, map, Observable, of, throwError, tap } from 'rxjs';
 import { LoginPayload } from './model/auth.model';
+import { ApiService } from '../API/api';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserService {
-  private users: User[] = userMock;
   private currentUser$ = new BehaviorSubject<User | null>(null);
+  private readonly userEndpoint = 'users';
 
   public readonly currentUserLoginOn$: Observable<boolean> = this.currentUser$.asObservable().pipe(
     map(user => user !== null)
@@ -19,7 +19,7 @@ export class UserService {
     map(user => user?.role === userRole.ADMIN)
   );
 
-  constructor() {
+  constructor(private apiService: ApiService) {
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
       this.currentUser$.next(JSON.parse(storedUser));
@@ -27,35 +27,30 @@ export class UserService {
   }
 
   login(payload: LoginPayload): Observable<User> {
-    const user = this.users.find(u => u.email === payload.email && u.password === payload.password);
-    if (user) {
-      this.currentUser$.next(user);
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      return of(user);
-    }
-    return throwError(() => new Error('Email o contraseña incorrectos.'));
+    return this.apiService.get<User[]>(this.userEndpoint).pipe(
+      map(users => {
+        const user = users.find(u => u.email === payload.email && u.password === payload.password);
+        if (user) { // Lógica corregida: si el usuario se encuentra
+          this.currentUser$.next(user);
+          localStorage.setItem('currentUser', JSON.stringify(user));
+          return user;
+        }
+        throw new Error('Email o contraseña incorrectos.');
+      })
+    );
   }
 
   createUser(payload: User): Observable<User> {
-    const newUser = { ...payload, id: this.generateUniqueId() };
-    this.users.push(newUser);
-    return of(newUser);
+    return this.apiService.post<User>(this.userEndpoint, payload);
   }
 
   updateUser(id: number, payload: Partial<User>): Observable<User> {
-    const index = this.users.findIndex(u => u.id === id);
-    if (index !== -1) {
-      this.users[index] = { ...this.users[index], ...payload };
-      return of(this.users[index]);
-    }
-    return throwError(() => new Error('Usuario no encontrado.'));
+    return this.apiService.put<User>(`${this.userEndpoint}/${id}`, payload);
   }
 
   deleteUser(id: number): Observable<boolean> {
-    const userExists = this.users.some(u => u.id === id);
-    if (!userExists) return of(false);
-    this.users = this.users.filter(u => u.id !== id);
-    return of(true);
+    return this.apiService.delete<any>(`${this.userEndpoint}/${id}`).pipe(
+      map(() => true));
   }
 
   logout(): void {
@@ -64,14 +59,10 @@ export class UserService {
   }
 
   getUsers(): Observable<User[]> {
-    return of(this.users);
+    return this.apiService.get<User[]>(this.userEndpoint);
   }
 
   isLoggedIn(): boolean{
     return this.currentUser$.getValue() !== null;
-  }
-
-  private generateUniqueId(): number {
-    return this.users.length > 0 ? Math.max(...this.users.map(u => u.id)) + 1 : 1;
   }
 }

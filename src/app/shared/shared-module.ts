@@ -39,7 +39,7 @@ import { MatNativeDateModule } from '@angular/material/core';
     MatSortModule,
     MatDatepickerModule,
     MatSelectModule,
-    MatNativeDateModule
+    MatNativeDateModule,
   ],
   exports:[
     CommonModule,
