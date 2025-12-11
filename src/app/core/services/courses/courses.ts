@@ -1,40 +1,34 @@
 import { Injectable } from '@angular/core';
 import { Course } from './model/Course';
-import { MOCK_COURSES } from './data/courses.mock';
-import { BehaviorSubject, of } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { ApiService } from '../API/api';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class CoursesService {
-  private courses: Course[] = MOCK_COURSES;
-  private coursesSubject = new BehaviorSubject<Course[]>([]);
-  courses$ = this.coursesSubject.asObservable();
+  private readonly coursesEndpoint = 'courses';
 
-  constructor() {
-    this.coursesSubject.next(this.courses);
+  constructor(private apiService: ApiService) {}
+
+  getCourses(): Observable<Course[]> {
+    return this.apiService.get<Course[]>(this.coursesEndpoint);
   }
-  getCourses() {
-    this.coursesSubject.next(this.courses);
+
+  getCourseById(id: number): Observable<Course | undefined> {
+    return this.apiService.get<Course>(`${this.coursesEndpoint}/${id}`);
   }
-  getCourseById(id: number) {
-    return of(this.courses.find(course => course.id === id));
+
+  addCourse(payload: Omit<Course, 'id'>): Observable<Course> {
+    return this.apiService.post<Course>(this.coursesEndpoint, payload);
   }
-  addCourse(course: Course) {
-    const newId = this.courses.length > 0 ? this.courses[this.courses.length - 1].id + 1 : 1;
-    course.id = newId;
-    this.courses.push(course);
-    this.coursesSubject.next(this.courses);
+
+  updateCourse(id: number, payload: Course): Observable<Course> {
+    return this.apiService.put<Course>(`${this.coursesEndpoint}/${id}`, payload);
   }
-  updateCourse(updatedCourse: Course) {
-    const updatedCourses = this.courses.map((c)=> (c.id === updatedCourse.id ? updatedCourse : c));
-    this.courses = updatedCourses;
-    this.coursesSubject.next(this.courses);
-  }
-  deleteCourse(courseId: number) {
-    const filteredCourses = this.courses.filter((c)=> (c.id !== courseId));
-    this.courses = filteredCourses;
-    this.coursesSubject.next(this.courses);
+
+  deleteCourse(id: number): Observable<any> {
+    return this.apiService.delete<any>(`${this.coursesEndpoint}/${id}`);
   }
 }

@@ -33,13 +33,20 @@ export class CoursesForm {
     })
   }
   onSubmit(): void {
-    if(this.isEditing){
-      this.CoursesService.updateCourse(this.createForm.value);
-    } else {
-      this.CoursesService.addCourse(this.createForm.value);
+    if (this.createForm.invalid) {
+      this.createForm.markAllAsTouched();
+      return;
     }
-    this.createForm.reset();
-    this.router.navigate(['/dashboard/courses']);
+
+    if (this.isEditing && this.courseId) {
+      this.CoursesService.updateCourse(this.courseId, this.createForm.value).subscribe({
+        next: () => this.router.navigate(['/dashboard/courses']),
+      });
+    } else {
+      this.CoursesService.addCourse(this.createForm.value).subscribe({
+        next: () => this.router.navigate(['/dashboard/courses']),
+      });
+    }
   }
   inputValid(inputName: 'title' | 'description' | 'duration' | 'beginDate' | 'endDate' | 'status'){
     return this.createForm.get(inputName)?.valid && this.createForm.get(inputName)?.touched;

@@ -28,7 +28,7 @@
         <ng-container matColumnDef="courses">
             <th mat-header-cell *matHeaderCellDef>Courses</th>
             <td mat-cell *matCellDef="let row">
-                {{row.courses}}
+                {{getCourseTitles(row.courses)}}
             </td>
         </ng-container>
         <ng-container matColumnDef="status">

@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, AfterViewInit } from '@angular/core';
 import { Course, coursesColumns } from '../../../../core/services/courses/model/Course';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
@@ -11,24 +11,30 @@ import { CoursesService } from '../../../../core/services/courses/courses';
   templateUrl: './courses-table.html',
   styleUrl: './courses-table.css',
 })
-export class CoursesTable {
+export class CoursesTable implements OnInit, AfterViewInit {
   displayedColumns: string[] = coursesColumns;
   dataSource = new MatTableDataSource<Course>([]);
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-  constructor(private CoursesService: CoursesService) {
-    this.CoursesService.courses$.subscribe((courses)=>{
-      this.dataSource.data = courses;
+  constructor(private coursesService: CoursesService) {}
+
+  ngOnInit(){
+    this.loadCourses();
+  }
+
+  loadCourses() {
+    this.coursesService.getCourses().subscribe({
+      next: (courses) => {
+        this.dataSource.data = courses;
+      },
     });
   }
-  ngOnInit(){
-    this.CoursesService.getCourses();
-  }
+
   ngAfterViewInit() {
     this.dataSource.paginator = this.paginator;
   }
   onDeleteCourse(id: number) {
-    this.CoursesService.deleteCourse(id);
+    this.coursesService.deleteCourse(id).subscribe(() => this.loadCourses());
   }
   applyFilter(event: Event) {
     const filterValue = (event.target as HTMLInputElement).value;

@@ -8,7 +8,7 @@ import { catchError } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class ApiService {
-  private readonly APIUrl= "https://6932f5d1e5a9e342d271726b.mockapi.io/api/v1/";
+  private readonly APIUrl= "https://6932f5d1e5a9e342d271726b.mockapi.io/api/v1";
 
   constructor(private http: HttpClient) {}
 
@@ -41,5 +41,3 @@ export class ApiService {
     return this.http.delete<T>(`${this.APIUrl}/${endpoint}`).pipe(catchError(this.handleError));
   }
 }
-
-

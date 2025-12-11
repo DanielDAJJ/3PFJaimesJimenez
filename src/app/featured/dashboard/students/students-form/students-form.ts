@@ -38,13 +38,18 @@ export class StudentsForm {
     })
   }
   onSubmit(): void {
-    if(this.isEditing){
-      this.StudentsService.updateStudent(this.createForm.value);
+    if (this.createForm.invalid) {
+      this.createForm.markAllAsTouched();
+      return;
+    }
+
+    if (this.isEditing && this.studentId) {
+      this.StudentsService.updateStudent({ id: this.studentId, ...this.createForm.value });
     } else {
       this.StudentsService.addStudent(this.createForm.value);
     }
-    this.createForm.reset();
-    this.router.navigate(['/dashboard/students']);
+
+    this.router.navigate(['/dashboard/students']); // Navegamos después de la operación
   }
   inputValid(inputName: 'name' | 'email' | 'courses' | 'status'){
     return this.createForm.get(inputName)?.valid && this.createForm.get(inputName)?.touched;
@@ -84,11 +89,14 @@ export class StudentsForm {
     this.loadCourses();
   }
   loadCourses(): void {
-    this.CoursesService.courses$.subscribe({
+    this.CoursesService.getCourses().subscribe({
       next: (courses) =>{
         this.coursesList = courses;
       }
     });
-    this.CoursesService.getCourses();
+  }
+
+  compareCourses(course1: Course, course2: Course): boolean {
+    return course1 && course2 ? course1.id === course2.id : course1 === course2;
   }
 }
