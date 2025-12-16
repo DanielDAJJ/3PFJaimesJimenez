@@ -1,15 +1,51 @@
-@if (student$ | async; as student) {
-    <div>
-        <h1>Perfil de {{student.name}}</h1>
-        <ul>
-            <li><strong>ID:</strong> {{ student.id }}</li>
-            <li><strong>Email:</strong> {{ student.email }}</li>
-            <li><strong>Cursos:</strong> {{ student.courses }}</li>
-            <li><strong>Estado:</strong> {{ student.status }}</li>
-        </ul>
-    </div>
-}@else{
-    <div>
-        <p>Cargando perfil del estudiante...</p>
-    </div>
-}
+    <div class="profile-container">
+    @if (student$ | async; as student) {
+        <button mat-stroked-button routerLink="/dashboard/students">
+        <mat-icon>arrow_back</mat-icon>
+        Volver a la lista
+        </button>
+
+        <h1>Perfil de: {{ student.name }}</h1>
+        <mat-card>
+        <mat-card-header>
+            <mat-card-title>{{ student.name }}</mat-card-title>
+            <mat-card-subtitle>{{ student.email }}</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <p><strong>Estado:</strong> {{ student.status | titlecase }}</p>
+
+            <h2>Cursos Inscritos</h2>
+            @if (enrolledCourses$ | async; as courses) {
+            @if (courses.length > 0) {
+                <table mat-table [dataSource]="courses" class="mat-elevation-z8">
+                <!-- Course Title Column -->
+                <ng-container matColumnDef="title">
+                    <th mat-header-cell *matHeaderCellDef> Curso </th>
+                    <td mat-cell *matCellDef="let course"> {{course.title}} </td>
+                </ng-container>
+
+                <!-- Actions Column -->
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef> Acciones </th>
+                    <td mat-cell *matCellDef="let course">
+                    <button mat-icon-button color="warn" (click)="onUnenroll(course.id)" matTooltip="Desinscribir">
+                        <mat-icon>delete_forever</mat-icon>
+                    </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="['title', 'actions']"></tr>
+                <tr mat-row *matRowDef="let row; columns: ['title', 'actions'];"></tr>
+                </table>
+            } @else {
+                <p>Este alumno no está inscrito en ningún curso.</p>
+            }
+            } @else {
+            <p>Cargando cursos...</p>
+            }
+        </mat-card-content>
+        </mat-card>
+    } @else {
+        <mat-spinner></mat-spinner>
+    }
+</div>
