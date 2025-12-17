@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentsService } from '../../../../core/services/students/students';
 import { Student } from '../../../../core/services/students/model/students.model';
-import { forkJoin, map, Observable } from 'rxjs';
+import { forkJoin, map, Observable, catchError, of, Subject, switchMap, startWith } from 'rxjs';
 import { Course } from '../../../../core/services/courses/model/Course';
 import { CoursesService } from '../../../../core/services/courses/courses';
 import { InscriptionService } from '../../../../core/services/inscription/inscription';
@@ -16,6 +16,7 @@ import { InscriptionService } from '../../../../core/services/inscription/inscri
 export class StudentsProfile implements OnInit {
   public student$: Observable<Student | undefined>;
   public enrolledCourses$!: Observable<Course[]>;
+  private refreshCourses$ = new Subject<void>();
   private studentId: number;
 
   constructor(
@@ -29,28 +30,41 @@ export class StudentsProfile implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadEnrolledCourses();
-  }
-
-  private loadEnrolledCourses(): void {
-    this.enrolledCourses$ = forkJoin({
-      inscriptions: this.inscriptionService.getInscriptions(),
-      courses: this.coursesService.getCourses(),
-    }).pipe(
-      map((result) => {
-        const studentInscriptions = result.inscriptions.filter(
-          (i) => i.studentId === this.studentId
-        );
-        const courseIds = studentInscriptions.map((i) => i.courseId);
-        return result.courses.filter((c) => courseIds.includes(c.id));
-      })
+    this.enrolledCourses$ = this.refreshCourses$.pipe(
+      startWith(null), // ¡SOLUCIÓN! Emite un valor inicial para disparar la carga.
+      // switchMap cancela la petición anterior si se emite una nueva
+      switchMap(() =>
+        forkJoin({
+          inscriptions: this.inscriptionService.getInscriptions().pipe(
+            catchError((err) => {
+              console.error('Error al cargar las inscripciones:', err);
+              return of([]);
+            })
+          ),
+          courses: this.coursesService.getCourses().pipe(
+            catchError((err) => {
+              console.error('Error al cargar los cursos:', err);
+              return of([]);
+            })
+          ),
+        }).pipe(
+          map((result) => {
+            const studentInscriptions = result.inscriptions.filter(
+              (i) => i.studentId === this.studentId
+            );
+            const courseIds = studentInscriptions.map((i) => i.courseId);
+            return result.courses.filter((c) => courseIds.includes(c.id));
+          })
+        )
+      )
     );
   }
 
   onUnenroll(courseId: number): void {
     if (confirm('¿Estás seguro de que quieres desinscribir a este alumno del curso?')) {
-      this.inscriptionService.deleteInscriptionByCourseAndStudentId(courseId, this.studentId);
-      this.loadEnrolledCourses();
+      this.inscriptionService.deleteInscriptionByCourseAndStudentId(courseId, this.studentId).subscribe({
+        next: () => this.refreshCourses$.next(), // En lugar de llamar a un método, emitimos un valor en el Subject
+      })
     }
   }
 }
