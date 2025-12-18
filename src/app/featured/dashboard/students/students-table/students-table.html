@@ -52,10 +52,9 @@
         </ng-container>
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-        <tr class="mat-row">
+        <tr class="mat-row" *matNoDataRow>
             <td class="mat-cell" colspan="4">
-                no data found "{{input.value}}"
+                No se encontraron datos para "{{input.value}}"
             </td>
         </tr>
     </table>

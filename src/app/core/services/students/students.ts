@@ -36,9 +36,10 @@ export class StudentsService {
     this.students$.next(updatedStudents);
   }
 
-  deleteStudent(studentId: number): void {
+  deleteStudent(studentId: number): Observable<any> {
     const students = this.students$.getValue();
     const filteredStudents = students.filter((s) => s.id !== studentId);
     this.students$.next(filteredStudents);
+    return of(null);
   }
 }

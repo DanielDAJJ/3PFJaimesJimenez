@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { StudentsService } from '../../../../core/services/students/students';
 import { Student } from '../../../../core/services/students/model/students.model';
-import { forkJoin, map, Observable, catchError, of, Subject, switchMap, startWith } from 'rxjs';
+import { forkJoin, map, Observable, catchError, of, Subject, switchMap, startWith, take } from 'rxjs';
 import { Course } from '../../../../core/services/courses/model/Course';
 import { CoursesService } from '../../../../core/services/courses/courses';
 import { InscriptionService } from '../../../../core/services/inscription/inscription';
@@ -31,17 +31,16 @@ export class StudentsProfile implements OnInit {
 
   ngOnInit(): void {
     this.enrolledCourses$ = this.refreshCourses$.pipe(
-      startWith(null), // ¡SOLUCIÓN! Emite un valor inicial para disparar la carga.
-      // switchMap cancela la petición anterior si se emite una nueva
+      startWith(null),
       switchMap(() =>
         forkJoin({
-          inscriptions: this.inscriptionService.getInscriptions().pipe(
+          inscriptions: this.inscriptionService.getInscriptions().pipe(take(1),
             catchError((err) => {
               console.error('Error al cargar las inscripciones:', err);
               return of([]);
             })
           ),
-          courses: this.coursesService.getCourses().pipe(
+          courses: this.coursesService.getCourses().pipe(take(1),
             catchError((err) => {
               console.error('Error al cargar los cursos:', err);
               return of([]);
@@ -50,10 +49,10 @@ export class StudentsProfile implements OnInit {
         }).pipe(
           map((result) => {
             const studentInscriptions = result.inscriptions.filter(
-              (i) => i.studentId === this.studentId
+              (i) => Number(i.studentId) === this.studentId
             );
             const courseIds = studentInscriptions.map((i) => i.courseId);
-            return result.courses.filter((c) => courseIds.includes(c.id));
+            return result.courses.filter((c) => courseIds.includes(Number(c.id)));
           })
         )
       )
@@ -63,7 +62,7 @@ export class StudentsProfile implements OnInit {
   onUnenroll(courseId: number): void {
     if (confirm('¿Estás seguro de que quieres desinscribir a este alumno del curso?')) {
       this.inscriptionService.deleteInscriptionByCourseAndStudentId(courseId, this.studentId).subscribe({
-        next: () => this.refreshCourses$.next(), // En lugar de llamar a un método, emitimos un valor en el Subject
+        next: () => this.refreshCourses$.next(),
       })
     }
   }
